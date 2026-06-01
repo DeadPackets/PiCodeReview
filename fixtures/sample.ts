@@ -1,10 +1,10 @@
-// Demo file with deliberately planted issues (one per dimension) plus a
-// false-positive bait, so `critique` can show recall AND the judge's precision.
+// Demo file with planted issues, one per dimension, plus a false-positive bait,
+// so critique has something to find and the judge has something to throw out.
 import { exec } from "node:child_process";
 
 declare const db: { query(sql: string): unknown };
 
-// [security] SQL injection — user input concatenated into the query string. CWE-89.
+// [security] SQL injection: user input concatenated straight into the query. CWE-89.
 export function getUser(req: { query: { id: string } }, res: { json(x: unknown): void }) {
   const id = req.query.id;
   const row = db.query("SELECT * FROM users WHERE id = '" + id + "'");
@@ -33,8 +33,8 @@ export function doStuff(a: string, b: number, c: boolean): number {
   return r;
 }
 
-// [false-positive bait] looks like command injection, but the command is a hardcoded
-// constant with no untrusted input — the judge should REJECT a security flag here.
+// [false-positive bait] looks like command injection, but the command is a fixed
+// constant with no untrusted input, so the judge should reject a security flag here.
 export function diskFree() {
   return exec("df -h");
 }

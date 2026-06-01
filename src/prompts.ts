@@ -1,16 +1,16 @@
 /**
- * Prompts — the substance of the reviewer.
+ * The prompts. This is where the actual review knowledge lives.
  *
- * Four "hunter" charters (one per review dimension) + one "judge" charter.
- * Each charter is a *stable* system prompt: it never changes between runs or
- * across the agent's turns, so the provider can cache the system+tools prefix.
- * The only thing that varies per run is the user message (the review scope),
- * which keeps the cacheable prefix large and the variable suffix small.
+ * Four hunter charters (one per dimension) and one judge charter. Each charter is a
+ * fixed system prompt: it doesn't change between runs or across an agent's turns, so
+ * the system+tools prefix stays cacheable. The only thing that varies per run is the
+ * user message (the scope being reviewed), which keeps the stable prefix large and the
+ * variable tail small.
  *
- * Rubrics are grounded in widely respected standards rather than personal taste:
- *   - Google Engineering Practices (code review: functionality, complexity, naming, tests, comments)
- *   - Clean Code (Robert C. Martin): naming, function size, comments-as-smell, duplication
- *   - CWE Top 25 (2024) + OWASP Top 10 for security
+ * The rubrics come from established standards, not personal taste:
+ *   - Google Engineering Practices (functionality, complexity, naming, tests, comments)
+ *   - Clean Code, Robert C. Martin (naming, function size, comments as a smell, duplication)
+ *   - CWE Top 25 (2024) and OWASP Top 10 for security
  */
 
 const SHARED_RULES = `
@@ -116,10 +116,10 @@ Tag every finding with the specific CWE id in \`standardRef\`. Do NOT flag pure 
 ];
 
 /**
- * Judge charter (big model). Verifies the panel's candidate findings against the
- * actual code — its job is precision: reject false positives, fix severity, and
- * write the final actionable suggestion. Stable prefix; the candidate findings are
- * supplied in the variable user message.
+ * Judge charter (big model). It checks the panel's candidate findings against the
+ * actual code. The job is precision: throw out false positives, fix the severity where
+ * it's off, and write the final suggestion. Fixed prefix; the candidate findings arrive
+ * in the variable user message.
  */
 export const JUDGE_PROMPT = `
 You are the JUDGE on a code-review panel. A panel of specialist reviewers (running a

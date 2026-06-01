@@ -1,20 +1,21 @@
 #!/usr/bin/env tsx
 /**
- * critique — an agentic, multi-tier code reviewer.
+ * critique: an agentic, multi-tier code reviewer.
  *
  *   input (diff | file | dir)
  *     -> Tier 1: four hunter agents (cheap model, read-only tools) explore the code
  *        in parallel and report findings, following references across files
  *     -> dedup (deterministic)
  *     -> Tier 2: judge agent (big model) re-reads the code and verifies each finding,
- *        rejecting false positives and calibrating severity
- *     -> rich CLI report
+ *        dropping false positives and fixing the severity
+ *     -> CLI report
  *
- * Cost discipline (best-effort, given the SDK abstracts the wire format):
- *   - tiered models: high-recall cheap model hunts; expensive model only judges deduped findings
- *   - stable prefixes: each charter + the tool set never change, so the system+tools
- *     prefix is cacheable across every turn of an agent loop
- *   - grep-first prompting + low thinking for hunters; dedup before the judge
+ * Where the cost goes (best-effort, since the SDK hides the wire format):
+ *   - tiered models: the cheap model does the high-volume hunting; the expensive one
+ *     only judges the deduped shortlist
+ *   - stable prefixes: each charter and the tool set are fixed, so the system+tools
+ *     prefix can be cached across every turn of an agent loop
+ *   - grep-first prompting and low thinking for hunters; dedup before the judge
  */
 
 import { execSync } from "node:child_process";
@@ -144,7 +145,7 @@ function buildScope(opts: {
 }
 
 // ---------------------------------------------------------------------------
-// Tier 1 — hunter agents
+// Tier 1: hunter agents
 // ---------------------------------------------------------------------------
 function reportFindingTool(sink: Omit<Finding, "id">[], dimension: string) {
   return defineTool({
@@ -188,8 +189,8 @@ async function runHunter(
   ctx: { authStorage: any; modelRegistry: any; model: any },
 ): Promise<Omit<Finding, "id">[]> {
   const sink: Omit<Finding, "id">[] = [];
-  // loader cwd = reviewer dir, NOT the target — so a reviewed repo's AGENTS.md
-  // can never inject instructions into our reviewer (prompt-injection hygiene).
+  // loader cwd is the reviewer dir, not the target repo, so a target's AGENTS.md
+  // can't inject instructions into our agents (prompt-injection hygiene).
   const loader = new DefaultResourceLoader({
     cwd: REVIEWER_DIR,
     agentDir: AGENT_DIR,
@@ -221,7 +222,7 @@ async function runHunter(
 }
 
 // ---------------------------------------------------------------------------
-// Dedup (deterministic) — collapse near-identical findings across hunters
+// Dedup (deterministic): collapse near-identical findings across hunters
 // ---------------------------------------------------------------------------
 function dedup(raw: Omit<Finding, "id">[]): Finding[] {
   const seen = new Map<string, Finding>();
@@ -235,7 +236,7 @@ function dedup(raw: Omit<Finding, "id">[]): Finding[] {
 }
 
 // ---------------------------------------------------------------------------
-// Tier 2 — judge agent
+// Tier 2: judge agent
 // ---------------------------------------------------------------------------
 function submitVerdictTool(findings: Map<number, Finding>) {
   return defineTool({
@@ -313,7 +314,7 @@ async function runJudge(
   );
   session.dispose();
 
-  // Anything the judge never ruled on is treated as unverified -> rejected.
+  // Anything the judge never ruled on stays unverified, so it gets rejected.
   for (const f of findings) if (!f.verdict) { f.verdict = "reject"; f.judgeNote = "Not verified by judge."; }
 }
 
