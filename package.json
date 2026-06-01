@@ -1,0 +1,24 @@
+{
+  "name": "critique",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agentic, multi-tier code reviewer — parallel specialist hunters (cheap model) verified by a judge (frontier model). Built on the Pi SDK + OpenRouter.",
+  "bin": {
+    "critique": "src/review.ts"
+  },
+  "scripts": {
+    "critique": "tsx src/review.ts",
+    "test": "tsx test/review.test.ts"
+  },
+  "dependencies": {
+    "@earendil-works/pi-ai": "^0.78.0",
+    "@earendil-works/pi-coding-agent": "^0.78.0",
+    "typebox": "^1.1.39"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
